@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Text Mining Tool</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <style>
+    /* Remove the navbar's default margin-bottom and rounded borders */
+    .navbar {
+      margin-bottom: 0;
+      border-radius: 0;
+    }
+
+    /* Set height of the grid so .sidenav can be 100% (adjust as needed) */
+    .row.content {height: 850px}
+
+    /* Set gray background color and 100% height */
+    .sidenav {
+      padding-top: 20px;
+      background-color: #00081b;
+      height: 200%;
+      color: white;
+    }.navbar{
+	 background-color: #0d1442;
+	}body {
+    font-family: Calibri;
+	}
+
+    /* Set black background color, white text and some padding */
+    footer {
+      background-color: #555;
+      color: white;
+      padding: 15px;
+	    position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  color: white;
+  text-align: center;
+    }
+
+    /* On small screens, set height to 'auto' for sidenav and grid */
+    @media screen and (max-width: 767px) {
+      .sidenav {
+        height: auto;
+        padding: 15px;
+      }
+      .row.content {height:auto;}
+    }
+	.table-wrapper-scroll-y {
+display: block;
+max-height: 700px;
+overflow-y: auto;
+-ms-overflow-style: -ms-autohiding-scrollbar;
+}
+.dataframe{
+width:100%
+}
+.radio {
+    text-align: left;
+}
+.checkbox {
+    text-align: left;
+}
+
+th {
+    text-align: center;
+    background: #0d1442;
+    color: white;
+}
+#submit{
+background:green;
+}
+  </style>
+
+<script>
+var onld = JSON.parse('{{ qry | tojson | safe}}');
+
+function filter(){
+f_val = $("#SA_filter").val()
+$(".tab1 tr").show()
+var t = document.getElementsByClassName('tab1')[0];
+		for(i=1;i<$(".tab1 tr").length;i++){
+			var val = $(t.rows[i].cells[0]).text();
+			if(val!=f_val) $(t.rows[i]).hide();
+        }
+
+}
+function showType(typ){
+	if(typ=='top'){
+			$(".tab1 tr").show()
+			$(".tab1 tr:gt(10)").hide()
+		}
+	if(typ=='all'){
+			$(".tab1 tr").show()
+		}
+	if(typ=='bottom'){
+		count = $(".tab1 tr").length -10
+			$(".tab1 tr").show()
+			$(".tab1 tr:lt("+count+")").hide()
+			$(".tab1 tr:lt(1)").show()
+		}
+}
+$(function() {
+
+	technique = onld.method;
+	$("#technique").val(technique);
+
+	if(onld.column){
+		 $("#text_column").val(onld.column);
+		$("#tables_head").show();
+	}
+
+	if(onld.problem_type){
+		$('input:radio[name="problem_type"]').filter('[value="'+onld.problem_type+'"]').attr('checked', true);
+		// $("#problem_type").val(onld.problem_type);
+	}
+
+	if(onld.target_column){
+		 $("#target_column").val(onld.target_column);
+	}
+
+	if(onld.feature){
+		f_arr = onld.feature.split(".")
+		console.log(f_arr)
+		for (i=0;i<f_arr.length;i++){
+				$("#f_"+f_arr[i]).attr('checked','checked')
+		}
+
+	}
+
+
+
+
+
+
+	$("#submit").click(function() {
+	   clmn  = $("#text_column").val();
+	   checks: {
+	   if(clmn == 'null'){
+			alert( "Select a Text Column");
+			break checks;
+		}
+	   problem_type  = $('input[name=problem_type]:checked').val()
+	   if(problem_type == 'null'){
+			alert( "Select a Problem Type");
+			break checks;
+		}
+	   target_column  = $("#target_column").val();
+	   if(target_column == 'null'){
+			alert( "Select a Target Column");
+			break checks;
+		}
+	   var ftr = ""
+            $.each($("input[name='feature']:checked"), function(){
+                ftr= ftr+ $(this).val()+".";
+            });
+		ftr.slice(0,-1)
+
+	   if(ftr == 'null'){
+			alert( "Select a Feature");
+			break checks;
+		}
+	   mthd  = $("#technique").val();
+	   if(mthd == 'null'){
+			alert( "Select a Technique");
+			break checks;
+		}
+		qry = 'method='+mthd+'&column='+clmn+'&problem_type='+problem_type+'&target_column='+target_column+'&feature='+ftr
+
+		//alert (qry);
+		window.location.href = './'+qry;
+		}
+    });
+});
+
+</script>
+</head>
+<body>
+
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+	  <img class="navbar-brand"  src = "/static/dlogo.png"/>
+      <a class="navbar-brand" href="#"><b>Textract</b></a>
+    </div>
+    <div class="collapse navbar-collapse" id="myNavbar">
+      <ul class="nav navbar-nav">
+        <li><a href="/home">Home</a></li>
+        <li><a href="/preview/{{title}}">Preview</a></li>
+        <li ><a href='/textanalysis/{{title}}/method=null'>Text Analysis</a></li>
+        <li class="dropdown active">
+        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Modelling
+        <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+          <li><a href='/unsupervised/{{title}}/method=null'>Unsupervised</a></li>
+          <li class="active"><a href='/supervised/{{title}}/method=null'>Supervised</a></li>
+        </ul>
+      </li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="#"><span class="glyphicon glyphicon-log-in"></span> Reset</a></li>
+      </ul>
+    </div>
+  </div>
+  </nav>
+
+<div class="container-fluid text-center">
+  <div class="row content">
+    <div class="col-sm-2 sidenav">
+
+<br>
+  <label for="text_column" class="col-sm-8 control-label"> Select Text Column:</label>
+<select class="form-control" name= text_column id="text_column">
+	<option value= "null" >--Select Column--</option>
+    {% for column in columns %}
+    <option value= "{{column}}" 	>{{column}}</option>"
+    {% endfor %}
+</select>
+
+
+
+  <br><br>
+ <label for="problem_type" class="col-sm-8 control-label">Select the type of problem:</label>
+<br>
+
+
+
+
+<div class="radio">
+  <label><input   type="radio" name="problem_type"  value="classification">Classification</label>
+</div>
+<div class="radio">
+  <label><input  type="radio" name="problem_type" value="regression" >Regression</label>
+</div>
+
+
+
+<br>
+<br>
+<br>
+  <label for="target_column" class="col-sm-8 control-label"> Select Target Column:</label>
+<select class="form-control" name= target_column id="target_column">
+	<option value= "null" >--Select Column--</option>
+    {% for column in columns %}
+    <option value= "{{column}}" 	>{{column}}</option>"
+    {% endfor %}
+</select>
+
+
+
+<br><br>
+ <label for="feature" class="col-sm-8 control-label">Select Features:</label>
+
+ <div class="checkbox">
+  <label><input type="checkbox" id="f_BW" name="feature" value="BW">Bag-of-Words</label>
+</div>
+<div class="checkbox">
+  <label><input type="checkbox" id="f_WV" name="feature" value="WV">Word Vectors</label>
+</div>
+<div class="checkbox ">
+  <label><input type="checkbox" id="f_DV" name="feature" value="DV" >DocVectors</label>
+</div>
+<div class="checkbox ">
+  <label><input type="checkbox" id="f_FT" name="feature" value="FT" >FastText</label>
+</div>
+
+
+
+
+
+<br><br>
+ <label for="technique" class="col-sm-8 control-label">Select Technique:</label>
+
+
+<select class="form-control" name= technique id="technique">
+	<<option value= "null" >--Select Technique--</option>
+    <option value= "RF" >Random Forest</option>
+    <option value= "GB" >Gradient Boost</option>
+   <!-- <option value= "XG" >XGBoost</option>-->
+    <option value= "MLP" >MLP</option>
+    <option value= "KNN" >KNN</option>
+</select>
+
+
+
+
+<br><br>
+<input type=button class="form-control btn  btn-primary" id="submit" value=Submit></input>
+
+
+<br>
+
+    </div>
+    <div class="col-sm-8 text-center"">
+	<br><br>
+      <h2>Supervised Modelling</h2>
+	  <span id="tables_head" style="display:none;">
+	  <br><br>
+	   <h3>Report</h3>
+	  <div class="table-wrapper-scroll-y">
+    {{ report|safe }}
+      </div>
+
+
+	   <br><br>
+
+	   <h3>Predictions</h3>
+	   <div align="right" class="buttons" id="button_SA" >
+		<input  type=text class="" id="SA_filter" ></input>
+		<button type="button" class="btn btn-primary btn-xs" onclick="javascript:filter();"> Filter </button>
+		<button type="button" class="btn btn-primary btn-xs" onclick="javascript:showType('all');"> Show All </button>
+		<button type="button" class="btn btn-primary btn-xs" onclick="javascript:fnExcelReport('tab1');"> Export </button>
+	  </div>
+	  <div class="table-wrapper-scroll-y">
+    {{ table|safe }}
+
+      </div>
+
+
+
+	  </span>
+    </div>
+    <div class="col-sm-2 sidenav">
+
+
+    </div>
+  </div>
+</div>
+
+<!--
+<footer class="container-fluid text-center">
+  <p>Deloitte </p>
+</footer>-->
+
+
+</body>
+</html>

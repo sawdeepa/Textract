@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Text Mining Tool</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <style>
+    /* Remove the navbar's default margin-bottom and rounded borders */
+    .navbar {
+      margin-bottom: 0;
+      border-radius: 0;
+    }
+
+    /* Set height of the grid so .sidenav can be 100% (adjust as needed) */
+    .row.content {height: 850px}
+
+    /* Set gray background color and 100% height */
+    .sidenav {
+      padding-top: 20px;
+      background-color: #00081b;
+      #background-color: #cecece;
+      height: 100%;
+    }
+		 .list-group-item {
+      background-color: #b2cede;
+    }.navbar{
+	 background-color: #0d1442;
+	}body {
+    font-family: Calibri;
+	}
+
+
+    input#js-upload-submit{
+    background: green;
+	width:200px;
+}
+
+
+    /* Set black background color, white text and some padding */
+    footer {
+      background-color: #555;
+      color: white;
+      padding: 15px;
+	    position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  color: white;
+  text-align: center;
+    }
+
+    /* On small screens, set height to 'auto' for sidenav and grid */
+    @media screen and (max-width: 767px) {
+      .sidenav {
+        height: auto;
+        /*padding: 15px;*/
+      }
+      .row.content {height:auto;}
+    }
+  </style>
+<style>
+/* layout.css Style */
+.upload-drop-zone {
+  height: 200px;
+  border-width: 2px;
+  margin-bottom: 20px;
+}
+
+/* skin.css Style*/
+.upload-drop-zone {
+  color: #ccc;
+  border-style: dashed;
+  border-color: #ccc;
+  line-height: 200px;
+  text-align: center
+}
+.upload-drop-zone.drop {
+  color: #222;
+  border-color: #222;
+}
+
+.list-group {
+    width: 400px;
+	margin: auto;
+}
+
+</style>
+<script>
++ function($) {
+    'use strict';
+
+    // UPLOAD CLASS DEFINITION
+    // ======================
+
+    var dropZone = document.getElementById('drop-zone');
+    var uploadForm = document.getElementById('js-upload-form');
+
+    var startUpload = function(file) {
+        console.log(file);
+    }
+
+    uploadForm.addEventListener('submit', function(e) {
+        var uploadFiles = document.getElementById('js-upload-files').files;
+        e.preventDefault();
+
+        startUpload(uploadFiles);
+    })
+
+    dropZone.ondrop = function(e) {
+        e.preventDefault();
+        this.className = 'upload-drop-zone';
+
+        startUpload(e.dataTransfer.file);
+    }
+
+    dropZone.ondragover = function() {
+        this.className = 'upload-drop-zone drop';
+        return false;
+    }
+
+    dropZone.ondragleave = function() {
+        this.className = 'upload-drop-zone';
+        return false;
+    }
+
+}(jQuery);
+</script>
+</head>
+<body style="
+    background-color: #00081b;
+">
+
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+	  <img class="navbar-brand"  src = "./static/dlogo.png"/>
+      <a class="navbar-brand" href="#"><b>Textract</b></a>
+    </div>
+    <div class="collapse navbar-collapse" id="myNavbar">
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="/home">Home</a></li>
+        <li><a href="#">Preview</a></li>
+        <li><a href="#">Text Analysis</a></li>
+        <li class="dropdown">
+        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Modelling
+        <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+          <li><a href="#">Unsupervised</a></li>
+          <li><a href="#">Supervised</a></li>
+        </ul>
+      </li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="#"><span class="glyphicon glyphicon-log-in"></span> Reset</a></li>
+      </ul>
+    </div>
+  </div>
+  </nav>
+
+<div class="container-fluid text-center">
+  <div class="row content">
+    <div class="col-sm-2 sidenav">
+
+
+    </div>
+    <div class="col-sm-8 text-center"  style="
+    padding-left: 0px;
+    padding-right: 0px;
+    background-color: #00081b;
+    color: white;
+">
+	<img src='/static/image.jpeg' style = 'margin:auto; width:70%'></img>
+	<br><br>
+      <h2>Select files from your computer</h2>
+	  <br><br>
+          <form method=post enctype=multipart/form-data id="js-upload-form">
+            <div class="form-inline">
+              <div class="form-group">
+                <input type="file" name="file" id="js-upload-files" >
+              </div>
+
+            <input type=submit class="btn btn-primary" id="js-upload-submit" value=Upload > </input>
+            </div>
+          </form>
+      <br><br>
+	  Or, use from previously loaded files
+		  <div class="list-group">
+				  {% for file in file_list %}
+
+				  <a href="/preview/{{file}}" class="list-group-item list-group-item-action "> {{file}}</a>
+
+				{% endfor %}
+
+			</div>
+    </div>
+    <div class="col-sm-2 sidenav">
+
+
+    </div>
+  </div>
+</div>
+
+<!--
+<footer class="container-fluid text-center">
+  <p>Deloitte </p>
+</footer>-->
+
+
+
+
+</body>
+</html>

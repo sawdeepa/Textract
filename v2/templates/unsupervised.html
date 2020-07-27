@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Text Mining Tool</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+  <style>
+    /* Remove the navbar's default margin-bottom and rounded borders */
+    .navbar {
+      margin-bottom: 0;
+      border-radius: 0;
+    }
+
+    /* Set height of the grid so .sidenav can be 100% (adjust as needed) */
+    .row.content {height: 850px}
+
+    /* Set gray background color and 100% height */
+    .sidenav {
+      padding-top: 20px;
+      background-color: #00081b;
+      height: 200%;
+      color: white;
+    }.navbar{
+	 background-color: #0d1442;
+	}body {
+    font-family: Calibri;
+	}
+
+    /* Set black background color, white text and some padding */
+    footer {
+      background-color: #555;
+      color: white;
+      padding: 15px;
+	    position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  color: white;
+  text-align: center;
+    }
+
+    /* On small screens, set height to 'auto' for sidenav and grid */
+    @media screen and (max-width: 767px) {
+      .sidenav {
+        height: auto;
+        padding: 15px;
+      }
+      .row.content {height:auto;}
+    }
+	.table-wrapper-scroll-y {
+	display: block;
+	max-height: 700px;
+	overflow-y: auto;
+	-ms-overflow-style: -ms-autohiding-scrollbar;
+	}
+	.dataframe{
+	width:100%
+	}
+	th {
+		text-align: center;
+		background: #0d1442;
+		color: white;
+	}
+	#submit{
+	background:green;
+	}
+	.rating{
+		height:20px;
+		width:20px;
+	}
+  </style>
+
+<script>
+var onld = JSON.parse('{{ qry | tojson | safe}}');
+function fnExcelReport(class_name)
+{
+    var tab_text="<table border='2px'><tr bgcolor='#87AFC6'>";
+    var textRange; var j=0;
+    tab = document.getElementsByClassName(class_name)[0]; // id of table
+
+    for(j = 0 ; j < tab.rows.length ; j++)
+    {
+        tab_text=tab_text+tab.rows[j].innerHTML+"</tr>";
+        //tab_text=tab_text+"</tr>";
+    }
+
+    tab_text=tab_text+"</table>";
+    tab_text= tab_text.replace(/<A[^>]*>|<\/A>/g, "");//remove if u want links in your table
+    tab_text= tab_text.replace(/<img[^>]*>/gi,""); // remove if u want images in your table
+    tab_text= tab_text.replace(/<input[^>]*>|<\/input>/gi, ""); // reomves input params
+
+    var ua = window.navigator.userAgent;
+    var msie = ua.indexOf("MSIE ");
+
+    if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./))      // If Internet Explorer
+    {
+        txtArea1.document.open("txt/html","replace");
+        txtArea1.document.write(tab_text);
+        txtArea1.document.close();
+        txtArea1.focus();
+        sa=txtArea1.document.execCommand("SaveAs",true,"download.xls");
+    }
+    else                 //other browser not tested on IE 11
+        sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(tab_text));
+
+    return (sa);
+}
+function filter(){
+f_val = $("#SA_filter").val()
+$(".dataframe tr").show()
+var t = document.getElementsByClassName('tab1')[0];
+		for(i=1;i<$(".tab1 tr").length;i++){
+			var val = $(t.rows[i].cells[0]).text();
+			if(val!=f_val) $(t.rows[i]).hide();
+        }
+var t = document.getElementsByClassName('summary')[0];
+		for(i=1;i<$(".summary tr").length;i++){
+			var val = $(t.rows[i].cells[0]).text();
+			if(val!=f_val) $(t.rows[i]).hide();
+        }
+
+}
+function KM_filter(){
+f_val = $("#KM_filter").val()
+$(".tab1 tr").show()
+var t = document.getElementsByClassName('tab1')[0];
+		for(i=1;i<$(".tab1 tr").length;i++){
+			var val = $(t.rows[i].cells[0]).text();
+			if(val!=f_val) $(t.rows[i]).hide();
+        }
+
+}
+function showType(typ){
+	if(typ=='top'){
+			$(".tab1 tr").show()
+			$(".tab1 tr:gt(10)").hide()
+		}
+	if(typ=='all'){
+			$(".dataframe tr").show()
+		}
+	if(typ=='bottom'){
+		count = $(".tab1 tr").length -10
+			$(".tab1 tr").show()
+			$(".tab1 tr:lt("+count+")").hide()
+			$(".tab1 tr:lt(1)").show()
+		}
+}
+$(function() {
+
+	if(onld.method == 'KM'){
+		google.charts.load('current', {'packages':['corechart']});
+		google.charts.setOnLoadCallback(drawChart);
+		$("#chart_div").show()
+		$('.tab1 td:nth-child(4)').hide();
+		$('.tab1 td:nth-child(3)').hide();
+		$('.tab1 th:nth-child(4)').hide();
+		$('.tab1 th:nth-child(3)').hide();
+	}
+
+	if(onld.method == 'ELB'){
+		google.charts.load('current', {'packages':['corechart']});
+		google.charts.setOnLoadCallback(elbowdrawChart);
+		$("#chart_div").show()
+	}
+
+
+
+function getColor(num){
+if(num==0) return "green"
+else if(num==1) return "red"
+else if(num==2) return "blue"
+else if(num==3) return "yellow"
+else if(num==4) return "orange"
+else if(num==5) return "pink"
+else if(num==6) return "cyan"
+else if(num==7) return "aqua"
+else if(num==8) return "brown"
+else  return "white"}
+
+function drawChart() {
+	var dataTable = new google.visualization.DataTable();
+	dataTable.addColumn('number', 'Lines changed');
+	dataTable.addColumn('number', 'TTL');
+	dataTable.addColumn({type: 'string', role: 'tooltip'});
+	dataTable.addColumn( {'type': 'string', 'role': 'style'} );
+
+	var t = document.getElementsByClassName('tab1')[0];
+
+	for(i=1;i<$(".tab1 tr").length;i++){
+		var val1 = $(t.rows[i].cells[2]).text();
+		var val2 = $(t.rows[i].cells[3]).text();
+		var val3 = $(t.rows[i].cells[1]).text()
+		var val_text = val3 +':' + $(t.rows[i].cells[4]).text();
+		dataTable.addRow([Number(val1), Number(val2), val_text, 'point { fill-color:'+getColor(Number(val3))+'}']);
+	}
+
+	var options = {
+	  title: 'Cluster Analysis',
+	  hAxis: {title: 'X', minValue: -10, maxValue: 15},
+	  vAxis: {title: 'Y', minValue: 0, maxValue: 15},
+	  legend: 'none'
+	};
+
+	var chart = new google.visualization.ScatterChart(document.getElementById('chart_div'));
+	chart.draw(dataTable, options);
+}
+function elbowdrawChart() {
+	var dataTable = new google.visualization.DataTable();
+	dataTable.addColumn('number', 'K');
+	dataTable.addColumn('number', 'Value');
+
+	var t = document.getElementsByClassName('tab1')[0];
+
+	for(i=1;i<$(".tab1 tr").length;i++){
+		var val1 = $(t.rows[i].cells[0]).text();
+		var val2 = $(t.rows[i].cells[1]).text();
+		dataTable.addRow([Number(val1), Number(val2)]);
+	}
+
+	var options = {
+	  title: 'Elbow Curve ',
+	  hAxis: {title: 'K', minValue: 0, maxValue: 10},
+	  vAxis: {title: 'Value', minValue: 0, maxValue: 1},
+	  legend: 'none'
+	};
+
+	var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+	chart.draw(dataTable, options);
+}
+
+
+	technique = onld.method;
+	$("#technique").val(technique);
+	$("#"+technique+"_block").show();
+
+	if(onld.column){
+		 $("#text_column").val(onld.column);
+	}
+
+	if(technique == 'KM'){
+		$("#KM_clusters").val(onld.KM_clusters);
+		$("#KM_categ_column").val(onld.categ_column);
+		$("#SA_summary").show()
+		$("#button_KM").show()
+	}
+
+	if(technique == 'TM'){
+		$("#TM_topics").val(onld.TM_topics);
+		$("#button_SA").show()
+
+	}
+	if(technique == 'SA'){
+		$("#categ_column").val(onld.categ_column);
+		$("#button_SA").show()
+		$("#SA_summary").show()
+
+		var t_summ = document.getElementsByClassName('summary')[0];
+		for(i=1;i<=5;i++){
+			var val = $(t_summ.rows[0].cells[i]).text();
+			if(val.substring(0,6)=='rating')
+				$(t_summ.rows[0].cells[i]).html('<img class="rating" src="/static/'+val+'.png"></img>');
+		}
+		var t = document.getElementsByClassName('tab1')[0];
+		for(i=1;i<$(".dataframe tr").length;i++){
+			var val = $(t.rows[i].cells[3]).text();
+			$(t.rows[i].cells[3]).html('<img class="rating" src="/static/'+val+'.png"></img>');
+			/*var val = $(t.rows[i].cells[1]).text();
+			val2 = Number(val)
+			if(val2 > .75) $(t.rows[i].cells[2]).html('<img class="rating" src="/static/rating4.png"></img>');
+			else if(val2 > .25) $(t.rows[i].cells[2]).html('<img class="rating" src="/static/rating3.png"></img>');
+			else if(val2 > -.25) $(t.rows[i].cells[2]).html('<img class="rating" src="/static/rating2.png"></img>');
+			else if(val2 > -.75) $(t.rows[i].cells[2]).html('<img class="rating" src="/static/rating1.png"></img>');
+			else $(t.rows[i].cells[2]).html('<img class="rating" src="/static/rating0.png"></img>');
+			*/
+		}
+	}
+
+    $("#technique").change(function() {
+     //  alert(  $("#technique").val() );
+
+	 var blck =  $("#technique").val();
+	 $(".input_block").hide();
+	 $("#"+blck+"_block").show();
+
+    });
+
+	$("#submit").click(function() {
+	   clmn  = $("#text_column").val();
+	   checks: {
+	   if(clmn == 'null'){
+			alert( "Select a Column");
+			break checks;
+		}
+	   mthd  = $("#technique").val();
+	   if(mthd == 'null'){
+			alert( "Select a Technique");
+			break checks;
+		}
+		if(mthd == 'KM') qry = 'method='+mthd+'&column='+clmn+'&KM_clusters='+$("#KM_clusters").val()+'&categ_column='+$("#KM_categ_column").val()
+		if(mthd == 'ELB') qry = 'method='+mthd+'&column='+clmn
+		if(mthd == 'TM') qry = 'method='+mthd+'&column='+clmn+'&TM_topics='+$("#TM_topics").val()
+		if(mthd == 'SA') qry = 'method='+mthd+'&column='+clmn+'&categ_column='+$("#categ_column").val()
+		categ_column
+		//alert (qry);
+		window.location.href = './'+qry;
+		}
+    });
+});
+
+</script>
+</head>
+<body>
+
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+	  <img class="navbar-brand"  src = "/static/dlogo.png"/>
+      <a class="navbar-brand" href="#"><b>Textract</b></a>
+    </div>
+    <div class="collapse navbar-collapse" id="myNavbar">
+      <ul class="nav navbar-nav">
+        <li><a href="/home">Home</a></li>
+        <li><a href="/preview/{{title}}">Preview</a></li>
+        <li ><a href='/textanalysis/{{title}}/method=null'>Text Analysis</a></li>
+        <li class="dropdown active">
+        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Modelling
+        <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+          <li class="active"><a href='/unsupervised/{{title}}/method=null'>Unsupervised</a></li>
+          <li><a href='/supervised/{{title}}/method=null'>Supervised</a></li>
+        </ul>
+      </li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="#"><span class="glyphicon glyphicon-log-in"></span> Reset</a></li>
+      </ul>
+    </div>
+  </div>
+  </nav>
+
+<div class="container-fluid text-center">
+  <div class="row content">
+    <div class="col-sm-2 sidenav">
+
+<br>
+  <label for="text_column" class="col-sm-8 control-label"> Select Text Column:</label>
+<select class="form-control" name= text_column id="text_column">
+	<option value= "null" >--Select Column--</option>
+    {% for column in columns %}
+    <option value= "{{column}}" 	>{{column}}</option>"
+    {% endfor %}
+</select>
+
+<br><br>
+ <label for="technique" class="col-sm-8 control-label">Select Technique:</label>
+<select class="form-control" name= technique id="technique">
+	<<option value= "null" >--Select Technique--</option>
+    <option value= "ELB" >Elbow Curve</option>
+    <option value= "KM" >K-means Clustering</option>
+    <option value= "TM" >Topic Modelling</option>
+    <option value= "SA" >Sentiment Analysis</option>
+</select>
+<br><br><br>
+
+
+<div id="KM_block" class="input_block" style="display: none;">
+
+<label for="text_column" class="col-sm-8 control-label"> Clusters</label>
+<input class="form-control" type=number min="1" max="15" default="2" class="btn btn-sm btn-primary" id="KM_clusters" value=""></input>
+<br>
+ <label for="KM_categ_column" class="col-sm-8 control-label"> Select Category Column:</label>
+<select class="form-control" name= text_column id="KM_categ_column">
+	<option value= "null" >--Select Column--</option>
+    {% for column in columns %}
+    <option value= "{{column}}" 	>{{column}}</option>"
+    {% endfor %}
+</select>
+
+
+</div>
+
+<div id="ELB_block" class="input_block" style="display: none;">
+
+
+</div>
+
+<div id="TM_block" class="input_block" style="display: none;">
+
+<label for="text_column" class="col-sm-8 control-label"> Topics:</label>
+<input  type=number min="1" max="7" class="form-control" id="TM_topics" value=""></input>
+</div>
+
+<div id="SA_block" class="input_block" style="display: none;">
+  <label for="categ_column" class="col-sm-8 control-label"> Select Category Column:</label>
+<select class="form-control" name= text_column id="categ_column">
+	<option value= "null" >--Select Column--</option>
+    {% for column in columns %}
+    <option value= "{{column}}" 	>{{column}}</option>"
+    {% endfor %}
+</select>
+</div>
+
+
+<br><br>
+<input type=button class="form-control btn  btn-primary" id="submit" value=Submit></input>
+
+
+<br>
+
+    </div>
+    <div class="col-sm-8 text-center"">
+	<br><br>
+      <h2>Unsupervised Modelling</h2>
+
+	  <br><br>
+	   <div id="chart_div" style="width: 900px; height: 500px; margin:auto; display:none;"> </div>
+	   <div align="right" id="button_SA" style="display:none">
+		<input  type=text class="" id="SA_filter" ></input>
+		<button type="button" class="btn btn-primary btn-xs" onclick="javascript:filter();"> Filter </button>
+		<button type="button" class="btn btn-primary btn-xs" onclick="javascript:showType('all');"> Show All </button>
+		<button type="button" class="btn btn-primary btn-xs" onclick="javascript:showType('top');"> Top 10 </button>
+		<button type="button" class="btn btn-primary btn-xs" onclick="javascript:showType('bottom');"> Bottom 10 </button>
+		<button type="button" class="btn btn-primary btn-xs" onclick="javascript:fnExcelReport('tab1');"> Export </button>
+	  </div>
+	   <div align="right" class="buttons" id="button_KM" style="display:none">
+		<input  type=text class="" id="KM_filter" ></input>
+		<button type="button" class="btn btn-primary btn-xs" onclick="javascript:KM_filter();"> Filter </button>
+		<button type="button" class="btn btn-primary btn-xs" onclick="javascript:showType('all');"> Show All </button>
+		<button type="button" class="btn btn-primary btn-xs" onclick="javascript:fnExcelReport('tab1');"> Export </button>
+	  </div>
+
+	  <div class="table-wrapper-scroll-y">
+    {{ table|safe }}
+
+      </div>
+
+	  <br><br>
+	  <div class="table-wrapper-scroll-y" id ="SA_summary" style="display: none;">
+
+    {{ summary|safe }}
+	<div align="right">
+	<button type="button" class="btn btn-primary btn-xs" onclick="javascript:fnExcelReport('summary');"> Export </button></div>
+      </div>
+
+
+    </div>
+    <div class="col-sm-2 sidenav">
+
+
+    </div>
+  </div>
+</div>
+
+<!--
+<footer class="container-fluid text-center">
+  <p>Deloitte </p>
+</footer>-->
+
+
+</body>
+</html>
